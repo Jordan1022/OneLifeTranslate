@@ -1,9 +1,8 @@
 {
     "version": 2,
-    "name": "onelife-translation",
     "builds": [
         {
-            "src": "main.py",
+            "src": "vercel_api.py",
             "use": "@vercel/python"
         },
         {
@@ -14,25 +13,7 @@
     "routes": [
         {
             "src": "/api/(.*)",
-            "dest": "/main.py"
-        },
-        {
-            "handle": "filesystem"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/frontend/$1"
+            "dest": "/vercel_api.py"
         }
-    ],
-    "env": {
-        "AUTH_SECRET": "@auth_secret",
-        "OPENAI_API_KEY": "@openai_api_key",
-        "ELEVEN_API_KEY": "@eleven_api_key",
-        "USE_MOCK": "false"
-    },
-    "functions": {
-        "main.py": {
-            "maxDuration": 30
-        }
-    }
+    ]
 }
