@@ -3,6 +3,16 @@
 
 ---
 
+Launch Commands:
+   # Start backend
+   source venv/bin/activate
+   python main.py
+   
+   # Start frontend (in another terminal)
+   cd frontend && npm run dev 
+
+---
+
 ## 1. High-Level Flow
 
 ```

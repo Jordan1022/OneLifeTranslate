@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { VolumeUpIcon, VolumeXIcon } from '@heroicons/react/24/outline'
+import { SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline'
+import Hls from 'hls.js'
 
 interface AudioPlayerProps {
   streamUrl: string
@@ -8,12 +9,14 @@ interface AudioPlayerProps {
 
 export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const hlsRef = useRef<Hls | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(0.8)
   const [isMuted, setIsMuted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Initialize HLS
   useEffect(() => {
     if (!audioRef.current) return
 
@@ -47,20 +50,87 @@ export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
     }
   }, [])
 
+  // Handle HLS setup and cleanup
   useEffect(() => {
     if (!audioRef.current) return
 
+    const audio = audioRef.current
+
     if (isActive) {
-      // Try to play when stream becomes active
-      audioRef.current.load() // Reload the stream
-      audioRef.current.play().catch(err => {
-        console.error('Auto-play failed:', err)
-      })
+      setIsLoading(true)
+      setError(null)
+
+      if (Hls.isSupported()) {
+        // Use HLS.js for browsers that support it
+        if (hlsRef.current) {
+          hlsRef.current.destroy()
+        }
+
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90
+        })
+
+        hlsRef.current = hls
+
+        hls.loadSource(streamUrl)
+        hls.attachMedia(audio)
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          console.log('HLS manifest parsed, trying to play')
+          audio.play().catch(err => {
+            console.error('Auto-play failed:', err)
+            setError('Click play to start audio (browser blocked auto-play)')
+          })
+        })
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('HLS error:', data)
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                setError('Network error loading stream')
+                hls.startLoad()
+                break
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                setError('Media error - trying to recover')
+                hls.recoverMediaError()
+                break
+              default:
+                setError('Fatal error occurred')
+                hls.destroy()
+                break
+            }
+          }
+        })
+      } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+        // Fallback for Safari which has native HLS support
+        audio.src = streamUrl
+        audio.play().catch(err => {
+          console.error('Auto-play failed:', err)
+          setError('Click play to start audio (browser blocked auto-play)')
+        })
+      } else {
+        setError('HLS not supported in this browser')
+      }
     } else {
-      // Pause when stream is inactive
-      audioRef.current.pause()
+      // Clean up when stream is inactive
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+        hlsRef.current = null
+      }
+      audio.pause()
+      audio.src = ''
     }
-  }, [isActive])
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+        hlsRef.current = null
+      }
+    }
+  }, [isActive, streamUrl])
 
   useEffect(() => {
     if (audioRef.current) {
@@ -100,10 +170,7 @@ export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
         ref={audioRef}
         preload="none"
         className="hidden"
-      >
-        {isActive && <source src={streamUrl} type="application/vnd.apple.mpegurl" />}
-        Your browser does not support the audio element.
-      </audio>
+      />
 
       {/* Player Interface */}
       <div className="bg-slate-50 rounded-xl p-6 border border-slate-200/50">
@@ -115,22 +182,27 @@ export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
               <span className="text-sm">Loading stream...</span>
             </div>
           )}
-          
+
           {!isActive && !isLoading && (
             <div className="text-slate-500 text-sm">
               Stream not active. Start the translation to begin audio playback.
             </div>
           )}
-          
+
           {isActive && !isLoading && !error && (
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-sm text-slate-700">Live Stream Active</span>
             </div>
           )}
-          
+
           {error && (
-            <div className="text-red-600 text-sm">{error}</div>
+            <div className="text-red-600 text-sm flex items-center justify-center space-x-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
           )}
         </div>
 
@@ -143,19 +215,19 @@ export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
               w-16 h-16 rounded-full flex items-center justify-center
               transition-all duration-200 hover:scale-105 focus:outline-none
               focus:ring-4 focus:ring-primary-200 disabled:opacity-50 disabled:hover:scale-100
-              ${isPlaying 
-                ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25' 
+              ${isPlaying
+                ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25'
                 : 'bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50'
               }
             `}
           >
             {isPlaying ? (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
               </svg>
             ) : (
               <svg className="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
+                <path d="M8 5v14l11-7z" />
               </svg>
             )}
           </button>
@@ -168,12 +240,12 @@ export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
             className="p-2 text-slate-600 hover:text-slate-800 transition-colors"
           >
             {isMuted ? (
-              <VolumeXIcon className="w-5 h-5" />
+              <SpeakerXMarkIcon className="w-5 h-5" />
             ) : (
-              <VolumeUpIcon className="w-5 h-5" />
+              <SpeakerWaveIcon className="w-5 h-5" />
             )}
           </button>
-          
+
           <div className="flex-1">
             <input
               type="range"
@@ -185,7 +257,7 @@ export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
               className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
             />
           </div>
-          
+
           <div className="text-sm text-slate-600 w-10 text-right">
             {Math.round((isMuted ? 0 : volume) * 100)}%
           </div>
@@ -197,6 +269,10 @@ export default function AudioPlayer({ streamUrl, isActive }: AudioPlayerProps) {
         {isActive && (
           <>
             Stream URL: <code className="bg-slate-100 px-2 py-1 rounded">{streamUrl}</code>
+            <br />
+            <span className="text-slate-400">
+              Using {Hls.isSupported() ? 'HLS.js' : 'Native HLS'} for playback
+            </span>
           </>
         )}
       </div>

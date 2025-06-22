@@ -40,28 +40,49 @@ export default function CaptionDisplay({ captions, isActive }: CaptionDisplayPro
       </div>
 
       {/* Captions Container */}
-      <div 
+      <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300"
+        className="flex-1 overflow-y-auto space-y-3 pr-2"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#cbd5e1 #f1f5f9'
+        }}
       >
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            width: 6px;
+          }
+          div::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+          }
+          div::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+          }
+          div::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+        `}</style>
+
         {captions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-400">
             <ChatBubbleLeftIcon className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm text-center">
-              {isActive 
-                ? "Waiting for captions..." 
+            <p className="text-sm text-center px-4">
+              {isActive
+                ? "Waiting for captions..."
                 : "Start the stream to see live captions"
               }
             </p>
           </div>
         ) : (
           captions.map((caption, index) => (
-            <div 
+            <div
               key={index}
               className="animate-slide-up"
             >
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
-                <div className="text-xs text-slate-500 mb-1">
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50 hover:bg-slate-100 transition-colors">
+                <div className="text-xs text-slate-500 mb-1 font-mono">
                   {formatTimestamp(caption.timestamp)}
                 </div>
                 <div className="text-sm text-slate-800 leading-relaxed">
