@@ -7,7 +7,7 @@
             "use": "@vercel/python"
         },
         {
-            "src": "frontend/package.json",
+            "src": "frontend/next.config.js",
             "use": "@vercel/next"
         }
     ],
@@ -29,10 +29,5 @@
         "OPENAI_API_KEY": "@openai_api_key",
         "ELEVEN_API_KEY": "@eleven_api_key",
         "USE_MOCK": "false"
-    },
-    "functions": {
-        "main.py": {
-            "maxDuration": 30
-        }
     }
 }
