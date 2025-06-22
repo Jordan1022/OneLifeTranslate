@@ -2,11 +2,19 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  images: {
+    unoptimized: true
+  },
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/:path*',
+        destination: process.env.NODE_ENV === 'production' 
+          ? `${process.env.NEXT_PUBLIC_API_URL}/:path*`
+          : 'http://localhost:8000/:path*',
       },
     ]
   },
@@ -26,6 +34,9 @@ const nextConfig = {
         ],
       },
     ]
+  },
+  env: {
+    CUSTOM_KEY: 'my-value',
   },
 }
 

@@ -6,16 +6,21 @@ import queue
 import logging
 import json
 import time
+import os
+import hashlib
+import hmac
 from pathlib import Path
 from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sse_starlette.sse import EventSourceResponse
 import uvicorn
+from pydantic import BaseModel
 
 # Import our workers
 import sys
@@ -29,6 +34,86 @@ from tts.eleven_stream import ElevenLabsWorker, MockTTSWorker, AudioBuffer
 from streamer.hls_packager import HLSPackager, MockHLSPackager
 
 logger = logging.getLogger(__name__)
+
+# Authentication models
+class TokenValidationRequest(BaseModel):
+    token: str
+
+class AuthConfig:
+    def __init__(self):
+        # Get auth secret from environment variable
+        self.auth_secret = os.getenv('AUTH_SECRET', 'onelife-church-spanish-2024')
+        
+        # Generate valid tokens (you can customize this logic)
+        self.valid_tokens = self._generate_valid_tokens()
+    
+    def _generate_valid_tokens(self):
+        """Generate valid access tokens"""
+        # You can customize this to generate multiple tokens
+        # For now, we'll create a single shared token and a few dated tokens
+        base_tokens = [
+            'onelife-spanish-access',  # Main token
+            'church-translation-2024',  # Alternative token
+        ]
+        
+        # Add time-based tokens (weekly rotation)
+        import datetime
+        current_week = datetime.datetime.now().isocalendar()[1]
+        weekly_token = f"week-{current_week}-2024"
+        base_tokens.append(weekly_token)
+        
+        # Hash tokens for security
+        hashed_tokens = []
+        for token in base_tokens:
+            # Create HMAC hash
+            hashed = hmac.new(
+                self.auth_secret.encode(),
+                token.encode(),
+                hashlib.sha256
+            ).hexdigest()[:16]  # Take first 16 chars for shorter URL
+            hashed_tokens.append(hashed)
+        
+        return hashed_tokens + base_tokens  # Accept both hashed and plain for flexibility
+
+# Global auth config
+auth_config = AuthConfig()
+security = HTTPBearer(auto_error=False)
+
+def verify_token(token: str) -> bool:
+    """Verify if a token is valid"""
+    if not token:
+        return False
+    
+    # Check against valid tokens
+    if token in auth_config.valid_tokens:
+        return True
+    
+    # Check if it's a hashed version of a valid token
+    for valid_token in ['onelife-spanish-access', 'church-translation-2024']:
+        hashed = hmac.new(
+            auth_config.auth_secret.encode(),
+            valid_token.encode(),
+            hashlib.sha256
+        ).hexdigest()[:16]
+        if token == hashed:
+            return True
+    
+    return False
+
+def get_current_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> str:
+    """Extract and validate token from Authorization header"""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    if not verify_token(credentials.credentials):
+        raise HTTPException(status_code=403, detail="Invalid authentication token")
+    
+    return credentials.credentials
+
+def verify_query_token(request: Request) -> bool:
+    """Verify token from query parameters (for SSE endpoints)"""
+    token = request.query_params.get('token')
+    return verify_token(token) if token else False
 
 class TranslationPipeline:
     def __init__(self, use_mock: bool = False):
@@ -214,8 +299,25 @@ async def root():
     """Serve the frontend"""
     return FileResponse("frontend/dist/index.html")
 
+@app.post("/validate-token")
+async def validate_token(request: TokenValidationRequest):
+    """Validate an authentication token"""
+    if verify_token(request.token):
+        return {"valid": True, "message": "Token is valid"}
+    else:
+        raise HTTPException(status_code=403, detail="Invalid token")
+
+@app.get("/auth/tokens")
+async def get_valid_tokens():
+    """Get current valid tokens (for admin use only - remove in production or protect)"""
+    # WARNING: This endpoint should be removed or protected in production
+    return {
+        "tokens": auth_config.valid_tokens,
+        "note": "Remove this endpoint in production"
+    }
+
 @app.post("/start")
-async def start_stream():
+async def start_stream(token: str = Depends(get_current_token)):
     """Start the translation stream"""
     if not pipeline:
         raise HTTPException(status_code=500, detail="Pipeline not initialized")
@@ -224,7 +326,7 @@ async def start_stream():
     return {"status": "started", "stream_url": "/stream/playlist.m3u8"}
 
 @app.post("/stop")
-async def stop_stream():
+async def stop_stream(token: str = Depends(get_current_token)):
     """Stop the translation stream"""
     if not pipeline:
         raise HTTPException(status_code=500, detail="Pipeline not initialized")
@@ -252,8 +354,12 @@ async def serve_stream_file(filename: str):
     return FileResponse(file_path, media_type=media_type)
 
 @app.get("/captions")
-async def get_captions_stream():
+async def get_captions_stream(request: Request):
     """SSE endpoint for live captions"""
+    # Verify token from query parameter
+    if not verify_query_token(request):
+        raise HTTPException(status_code=403, detail="Invalid or missing token")
+    
     async def caption_generator():
         if not pipeline:
             return
@@ -303,7 +409,7 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info("WebSocket client disconnected")
 
 @app.get("/status")
-async def get_status():
+async def get_status(token: str = Depends(get_current_token)):
     """Get pipeline status"""
     if not pipeline:
         return {"status": "not_initialized"}

@@ -1,0 +1,41 @@
+# OneLife Translation Environment Configuration
+# Copy this to .env and update with your values
+
+# Authentication - CHANGE THIS TO A SECURE RANDOM STRING
+AUTH_SECRET=onelife-church-spanish-2024-secure-key
+
+# API Keys
+OPENAI_API_KEY=your_openai_api_key_here
+ELEVEN_API_KEY=your_elevenlabs_api_key_here
+
+# Development Settings
+USE_MOCK=false
+HOST=0.0.0.0
+PORT=8000
+
+# Production Settings (for Vercel)
+NEXT_PUBLIC_API_URL=https://your-backend-api-url.vercel.app
+
+# ================================
+# CURRENT VALID ACCESS TOKENS
+# ================================
+# Use these in your QR codes:
+
+# Main Tokens:
+# - onelife-spanish-access
+# - church-translation-2024
+
+# Weekly Token (auto-rotates):
+# - week-25-2024
+
+# Hashed Versions (more secure):
+# - 48cc7a0551c93af6
+# - 1a7110fba12568e0  
+# - 76592c3b55ab68c3
+
+# ================================
+# SAMPLE QR CODE URLS
+# ================================
+# https://your-app.vercel.app?token=onelife-spanish-access
+# https://your-app.vercel.app?token=week-25-2024
+# https://your-app.vercel.app?token=48cc7a0551c93af6 
