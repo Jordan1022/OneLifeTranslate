@@ -5,15 +5,12 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  output: 'export',
-  trailingSlash: true,
-  distDir: 'out',
   async rewrites() {
     return [
       {
         source: '/api/:path*',
         destination: process.env.NODE_ENV === 'production' 
-          ? `${process.env.NEXT_PUBLIC_API_URL}/:path*`
+          ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/:path*`
           : 'http://localhost:8000/:path*',
       },
     ]
@@ -34,9 +31,6 @@ const nextConfig = {
         ],
       },
     ]
-  },
-  env: {
-    CUSTOM_KEY: 'my-value',
   },
 }
 

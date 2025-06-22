@@ -7,11 +7,8 @@
             "use": "@vercel/python"
         },
         {
-            "src": "frontend/package.json",
-            "use": "@vercel/static-build",
-            "config": {
-                "distDir": "frontend/out"
-            }
+            "src": "frontend/next.config.js",
+            "use": "@vercel/next"
         }
     ],
     "routes": [
@@ -20,8 +17,11 @@
             "dest": "/main.py"
         },
         {
+            "handle": "filesystem"
+        },
+        {
             "src": "/(.*)",
-            "dest": "/frontend/out/$1"
+            "dest": "/frontend/$1"
         }
     ],
     "env": {
