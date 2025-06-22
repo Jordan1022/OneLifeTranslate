@@ -1,31 +1,30 @@
-
-# Real‑Time English→Spanish Translation Stream  
-*(OneLife Church – v0.3 ‑ **Dante + Cloud STT/MT Edition**)*  
-
----
-
-## 1. High‑Level Flow
-
-```
-Mixer Dante BUS ─► Dante LAN ─► **Translation PC** ─► OpenAI Whisper API ─► Glossary ─► GPT‑4o Mini (EN→ES) ─► ElevenLabs‑TTS ─► LL‑HLS ─► Client Page
-                                      (Mac mini / NUC)                       (context helpers)                    (audio + captions)
-```
+# Real-Time English→Spanish Translation Stream  
+*(OneLife Church - v0.3 - **Dante + Cloud STT/MT Edition**)*  
 
 ---
 
-## 2. Components & Choices
+## 1. High-Level Flow
+
+```
+Mixer Dante BUS -> Dante LAN -> **Translation PC** -> OpenAI Whisper API -> Glossary -> GPT-4o Mini (EN→ES) -> ElevenLabs-TTS -> LL-HLS -> Client Page
+                                      (Mac mini / NUC)                       (context helpers)                    (audio + captions)
+```
+
+---
+
+## 2. Components & Choices
 
 | Stage | Library / Service | Cost | Notes |
 |-------|-------------------|------|-------|
-| **Audio capture** | Dante Virtual Soundcard (DVS) + PortAudio/ALSA | **$49 one‑time** | Mixer routes AUX/Matrix on Dante; DVS appears as standard sound device. |
-| **Speech‑to‑Text** | **OpenAI Whisper API** (`audio.transcriptions`) | **$0.006 / audio‑min** | 48 kHz WAV POST → JSON; ≈300 ms latency; no local models. |
+| **Audio capture** | Dante Virtual Soundcard (DVS) + PortAudio/ALSA | **$49 one-time** | Mixer routes AUX/Matrix on Dante; DVS appears as standard sound device. |
+| **Speech-to-Text** | **OpenAI Whisper API** (`audio.transcriptions`) | **$0.006 / audio-min** | 48 kHz WAV POST → JSON; ≈300 ms latency; no local models. |
 | Glossary / context | Custom Python filter | Free | CSV glossary applied to English before translation. |
-| **Machine Translation** | **OpenAI GPT‑4o Mini** (`chat.completions`) | **≈ $0.005 / 750 chars** | 120–180 ms latency; prompt includes glossary notes if needed. |
-| **Text‑to‑Speech** | ElevenLabs Real‑Time v2 Streaming | $0.15 / 1 k chars | Voice “Lucía – Neutral LATAM”; ≈$35–46 / mo (4‑5 sermons). |
-| Packager / Stream | `ffmpeg` → chunked‑CMAF LL‑HLS | Free | Glass‑to‑glass delay ≈2–3 s. |
-| Backend API | FastAPI (Py 3.11) | Free | WebSocket in / HLS out / SSE captions. |
-| Front‑end | Next.js + Tailwind (or Flutter Web) | Free | Auth gate + `<audio>` element + live captions pane. |
-| Hosting / CDN | Cloudflare Free tier (orange‑cloud) | Free egress (< 100 GB / mo) | Origin = Translation PC; CDN caches `.m3u8` + `.m4s`. |
+| **Machine Translation** | **OpenAI GPT-4o Mini** (`chat.completions`) | **≈ $0.005 / 750 chars** | 120-180 ms latency; prompt includes glossary notes if needed. |
+| **Text-to-Speech** | ElevenLabs Real-Time v2 Streaming | $0.15 / 1 k chars | Voice "Lucía - Neutral LATAM"; ≈$35-46 / mo (4-5 sermons). |
+| Packager / Stream | `ffmpeg` → chunked-CMAF LL-HLS | Free | Glass-to-glass delay ≈2-3 s. |
+| Backend API | FastAPI (Py 3.11) | Free | WebSocket in / HLS out / SSE captions. |
+| Front-end | Next.js + Tailwind (or Flutter Web) | Free | Auth gate + `<audio>` element + live captions pane. |
+| Hosting / CDN | Cloudflare Free tier (orange-cloud) | Free egress (< 100 GB / mo) | Origin = Translation PC; CDN caches `.m3u8` + `.m4s`. |
 
 ---
 
@@ -53,7 +52,7 @@ onelife-translate/
 
 ---
 
-## 4. GPT‑4o Translation Worker Snippet
+## 4. GPT-4o Translation Worker Snippet
 
 ```python
 # translate/gpt4o_worker.py
@@ -78,7 +77,7 @@ async def translate_loop(en_q: "queue.Queue[str]", es_q: "queue.Queue[str]"):
 
 ---
 
-## 5. Environment / Deployment
+## 5. Environment / Deployment
 
 ```bash
 # Prereqs
@@ -91,7 +90,7 @@ pip install elevenlabs
 ```
 
 ```bash
-export OPENAI_API_KEY="sk-..."       # Whisper + GPT‑4o
+export OPENAI_API_KEY="sk-..."       # Whisper + GPT-4o
 export ELEVEN_API_KEY="..."          # ElevenLabs
 ```
 
@@ -99,18 +98,18 @@ _No local model downloads required._
 
 ---
 
-## 6. Latency & Sync Strategy
+## 6. Latency & Sync Strategy
 
 | Segment | Target (ms) |
 |---------|-------------|
 | Dante buffer | 1 |
-| Whisper API | 300 |
-| Glossary + GPT‑4o MT | 150 |
-| ElevenLabs first‑byte | 200 |
-| LL‑HLS buffer (2 parts) | 400 |
-| **Total** | **≈1 100–3 100 ms** |
+| Whisper API | 300 |
+| Glossary + GPT-4o MT | 150 |
+| ElevenLabs first-byte | 200 |
+| LL-HLS buffer (2 parts) | 400 |
+| **Total** | **≈1,100-3,100 ms** |
 
-Spanish text arrives ≈2 s before its matching audio; we delay display via SSE timestamps so reading & listening align.
+Spanish text arrives ≈2 s before its matching audio; we delay display via SSE timestamps so reading & listening align.
 
 ---
 
@@ -125,27 +124,27 @@ tithes & offerings,ofrendas y diezmos
 
 ---
 
-## 8. MVP Checklist
+## 8. MVP Checklist
 
-- [ ] Dante flow (AUX → DVS) verified in **Dante Controller**.  
-- [ ] FFmpeg captures 48 kHz mono without drop‑outs.  
-- [ ] **Whisper API** returns transcript <400 ms.  
-- [ ] **GPT‑4o Mini** translates chunk in <200 ms.  
+- [ ] Dante flow (AUX → DVS) verified in **Dante Controller**.  
+- [ ] FFmpeg captures 48 kHz mono without drop-outs.  
+- [ ] **Whisper API** returns transcript <400 ms.  
+- [ ] **GPT-4o Mini** translates chunk in <200 ms.  
 - [ ] ElevenLabs streams Spanish audio.  
 - [ ] HLS + captions play on mobile browsers.  
-- [ ] Two‑service dry run before soft‑launch.  
+- [ ] Two-service dry run before soft-launch.  
 
 ---
 
-## 9. Future Nice‑to‑Haves
+## 9. Future Nice-to-Haves
 
-- Moderator dashboard (“correct & re‑speak”).  
-- Auto‑archive to bilingual subtitles + podcast.  
+- Moderator dashboard ("correct & re-speak").  
+- Auto-archive to bilingual subtitles + podcast.  
 - Redundant Dante primary/secondary NICs.  
 
 ---
 
-## 10. Captions Timing (Live Sync)
+## 10. Captions Timing (Live Sync)
 
 ```ts
 const audioStart = performance.now() / 1000;
@@ -162,10 +161,10 @@ evtSource.onmessage = (e) => {
 
 | Role | Owner | Notes |
 |------|-------|-------|
-| Repo maintainer | Jordan @ Goodly Dev | merge rules, CI |
+| Repo maintainer | Jordan @ Goodly Dev | merge rules, CI |
 | Dante routing / clock | Sound team | mixer = clock leader |
 | Glossary curation | Spanish ministry lead | PRs to `glossaries/` |
 
 ---
 
-> **License** MIT for local code; comply with Audinate, OpenAI, ElevenLabs terms.
+> **License** MIT for local code; comply with Audinate, OpenAI, ElevenLabs terms.
