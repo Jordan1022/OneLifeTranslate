@@ -9,15 +9,5 @@
             "src": "api/[...path].py",
             "use": "@vercel/python"
         }
-    ],
-    "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "/vercel_api.py"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/frontend/$1"
-        }
     ]
 }
