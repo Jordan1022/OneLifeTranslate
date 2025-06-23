@@ -291,13 +291,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files for frontend
-app.mount("/static", StaticFiles(directory="frontend/dist"), name="static")
+# Static files are handled by Next.js in Vercel deployment
+# app.mount("/static", StaticFiles(directory="frontend/dist"), name="static")
 
 @app.get("/")
 async def root():
-    """Serve the frontend"""
-    return FileResponse("frontend/dist/index.html")
+    """API Root - Frontend is served by Next.js"""
+    return {"message": "OneLife Translation API", "version": "0.3.0"}
 
 @app.post("/validate-token")
 async def validate_token(request: TokenValidationRequest):
@@ -337,7 +337,12 @@ async def stop_stream(token: str = Depends(get_current_token)):
 @app.get("/stream/{filename}")
 async def serve_stream_file(filename: str):
     """Serve HLS stream files"""
-    stream_dir = Path("stream")
+    # In Vercel serverless environment, use a temporary directory
+    import tempfile
+    temp_dir = Path(tempfile.gettempdir())
+    stream_dir = temp_dir / "onelife_stream"
+    stream_dir.mkdir(exist_ok=True)
+    
     file_path = stream_dir / filename
     
     if not file_path.exists():

@@ -9,5 +9,31 @@
             "src": "api/[...path].py",
             "use": "@vercel/python"
         }
-    ]
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/[...path].py"
+        },
+        {
+            "src": "/stream/(.*)",
+            "dest": "/api/[...path].py"
+        },
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/$1"
+        }
+    ],
+    "functions": {
+        "api/[...path].py": {
+            "maxDuration": 30
+        }
+    },
+    "env": {
+        "USE_MOCK": "true",
+        "AUTH_SECRET": "ryH*!GGTc33Y*D"
+    }
 }
