@@ -2,11 +2,11 @@
     "version": 2,
     "builds": [
         {
-            "src": "frontend/package.json",
+            "src": "package.json",
             "use": "@vercel/next"
         },
         {
-            "src": "vercel_api.py",
+            "src": "api/[...path].py",
             "use": "@vercel/python"
         }
     ],
