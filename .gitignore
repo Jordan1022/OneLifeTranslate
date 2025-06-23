@@ -140,4 +140,7 @@ coverage.xml
 # Certificates
 *.pem
 *.key
-*.crt node_modules/
+*.crt
+
+# Node.js dependencies
+node_modules/
