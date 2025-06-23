@@ -2,15 +2,12 @@
     "version": 2,
     "builds": [
         {
-            "src": "vercel_api.py",
-            "use": "@vercel/python"
+            "src": "frontend/package.json",
+            "use": "@vercel/next"
         },
         {
-            "src": "frontend/package.json",
-            "use": "@vercel/next",
-            "config": {
-                "zeroConfig": true
-            }
+            "src": "vercel_api.py",
+            "use": "@vercel/python"
         }
     ],
     "routes": [
