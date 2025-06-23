@@ -64,6 +64,10 @@ frontend/.nyc_output/
 frontend/.cache/
 frontend/build/
 
+# Next.js (root level)
+.next/
+out/
+
 # NPM/Yarn
 npm-debug.log*
 yarn-debug.log*
