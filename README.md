@@ -34,6 +34,7 @@ Mixer Dante BUS → Translation PC → Whisper API → GPT-4o Mini → ElevenLab
 - Python 3.11+
 - Node.js 18+
 - FFmpeg
+- PortAudio development headers (for optional local audio capture)
 - Dante Virtual Soundcard (for production)
 
 ### Installation
@@ -48,8 +49,11 @@ Mixer Dante BUS → Translation PC → Whisper API → GPT-4o Mini → ElevenLab
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+    pip install -r requirements.txt
+    # If you need real audio capture, install PyAudio separately
+    # after installing PortAudio headers (e.g. `sudo apt-get install portaudio19-dev`)
+    # then run: pip install pyaudio
+    ```
 
 3. **Setup frontend**
    ```bash
