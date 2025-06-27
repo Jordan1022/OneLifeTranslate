@@ -292,7 +292,7 @@ app.add_middleware(
 )
 
 # Static files are handled by Next.js in Vercel deployment
-# app.mount("/static", StaticFiles(directory="frontend/dist"), name="static")
+# app.mount("/static", StaticFiles(directory="dist"), name="static")
 
 @app.get("/")
 async def root():

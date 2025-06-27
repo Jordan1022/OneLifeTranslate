@@ -6,10 +6,10 @@
 Launch Commands:
    # Start backend
    source venv/bin/activate
-   python main.py
+   python api/main.py
    
    # Start frontend (in another terminal)
-   cd frontend && npm run dev 
+   npm run dev
 
 ---
 
@@ -51,11 +51,10 @@ onelife-translate/
 │  └─ gpt4o_worker.py         # EN→ES cloud MT
 ├─ tts/
 │  └─ eleven_stream.py
-├─ streamer/
+├─ api/streamer/
 │  ├─ hls_packager.py
 │  └─ api.py                  # FastAPI routes + SSE
-├─ frontend/
-│  ├─ pages/
+├─ pages/
 │  └─ components/
 └─ PLAN.md
 ```

@@ -51,12 +51,10 @@ Mixer Dante BUS → Translation PC → Whisper API → GPT-4o Mini → ElevenLab
    pip install -r requirements.txt
    ```
 
-3. **Setup frontend**
+3. **Install Node.js dependencies**
    ```bash
-   cd frontend
    npm install
    npm run build
-   cd ..
    ```
 
 4. **Configure environment**
@@ -67,7 +65,7 @@ Mixer Dante BUS → Translation PC → Whisper API → GPT-4o Mini → ElevenLab
 
 5. **Run the application**
    ```bash
-   python main.py
+   python api/main.py
    ```
 
 6. **Open the web interface**
@@ -142,11 +140,9 @@ tithes and offerings,diezmos y ofrendas
 
 ```bash
 # Backend (with hot reload)
-cd streamer
-python -m uvicorn api:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 # Frontend (in separate terminal)
-cd frontend
 npm run dev
 ```
 
@@ -156,7 +152,7 @@ For development without API keys:
 
 ```bash
 export USE_MOCK=true
-python main.py
+python api/main.py
 ```
 
 Mock services simulate:
