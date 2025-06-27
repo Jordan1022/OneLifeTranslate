@@ -10,14 +10,10 @@ Your app now includes token-based authentication to protect against unauthorized
 
 ```bash
 # Install dependencies
-cd frontend
 npm install
 
 # Build the frontend
 npm run build
-
-# Go back to root
-cd ..
 
 # Install Python dependencies
 pip install -r requirements.txt
@@ -104,7 +100,7 @@ https://your-app.vercel.app?token=onelife-spanish-access
 - [ ] Set strong `AUTH_SECRET` environment variable
 - [ ] Configure real API keys (OpenAI, ElevenLabs)
 - [ ] Set `USE_MOCK=false`
-- [ ] Update CORS origins in `streamer/api.py`
+- [ ] Update CORS origins in `api/streamer/api.py`
 - [ ] Remove or protect `/auth/tokens` endpoint
 - [ ] Test token validation
 - [ ] Generate and test QR codes
@@ -125,7 +121,7 @@ https://your-app.vercel.app?token=onelife-spanish-access
 3. **Weekly**: `week-[number]-2024` (auto-rotates)
 
 ### To Add New Tokens:
-Edit the `_generate_valid_tokens()` method in `streamer/api.py`:
+Edit the `_generate_valid_tokens()` method in `api/streamer/api.py`:
 
 ```python
 base_tokens = [

@@ -106,20 +106,12 @@ setup_python() {
 
 # Function to setup frontend
 setup_frontend() {
-    print_status "Setting up frontend..."
-    
-    cd frontend
-    
-    # Install npm dependencies
     print_status "Installing npm dependencies..."
     npm install
-    
-    # Build frontend
+
     print_status "Building frontend..."
     npm run build
-    
-    cd ..
-    
+
     print_success "Frontend setup complete"
 }
 
@@ -143,7 +135,7 @@ setup_environment() {
 create_directories() {
     print_status "Creating required directories..."
     
-    directories=("stream" "logs" "frontend/dist")
+    directories=("stream" "logs")
     
     for dir in "${directories[@]}"; do
         if [ ! -d "$dir" ]; then
@@ -171,12 +163,7 @@ except ImportError as e:
     sys.exit(1)
 "
     
-    # Test frontend build
-    if [ -f "frontend/dist/index.html" ]; then
-        print_success "Frontend build verified"
-    else
-        print_warning "Frontend build not found"
-    fi
+
     
     print_success "Basic tests completed"
 }
@@ -216,7 +203,7 @@ main() {
     print_status "Next steps:"
     print_status "1. Edit .env file with your API keys (if not already done)"
     print_status "2. For testing without API keys, set USE_MOCK=true in .env"
-    print_status "3. Run the application: python main.py"
+    print_status "3. Run the application: python api/main.py"
     print_status "4. Open http://localhost:8000 in your browser"
     echo ""
     print_status "For production deployment:"
@@ -227,12 +214,6 @@ main() {
     echo ""
     print_status "Documentation: See README.md for detailed instructions"
 }
-
-# Check if running from correct directory
-if [ ! -f "main.py" ]; then
-    print_error "Please run this script from the OneLife Translation Stream root directory"
-    exit 1
-fi
 
 # Run main setup
 main
