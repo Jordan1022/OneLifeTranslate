@@ -3,7 +3,11 @@ uvicorn[standard]>=0.24.0
 websockets>=12.0
 openai>=1.54.0
 elevenlabs>=1.0.0
-pyaudio>=0.2.11
+# Optional: required only for local audio capture
+# pyaudio depends on the system portaudio library
+# install manually with `pip install pyaudio` after
+# installing portaudio headers (e.g. `apt-get install portaudio19-dev`)
+#pyaudio>=0.2.11
 numpy>=1.24.0
 python-multipart>=0.0.6
 sse-starlette>=1.6.5
